@@ -3,13 +3,14 @@ import { useState } from 'react'
 import './App.css'
 import { useEffect } from 'react';
 import { useRef } from 'react';
+import useInfiniteScroll from './hook/useInfiniteScroll';
 
 function App() {
   const [page, setPage] = useState(1);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(null); 
   const loadingRef = useRef();
-const fetchImages = async ({limit = 5}) => {
+const fetchPosts = async ({limit = 5}) => {
   try {
     
     const url = `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=${limit}`;
@@ -31,23 +32,10 @@ const fetchImages = async ({limit = 5}) => {
  
 }
 useEffect(() => {
-fetchImages({ limit: 5 });
+fetchPosts({ limit: 5 });
 },[page]);
 
-useEffect(() => {
-  if(!loadingRef.current) return;
-  const loadingObserver = new IntersectionObserver(([entry]) => {
-    if(entry.isIntersecting){
-      setPage((page) => page + 1)
-    }
-  },
-  {threshold: 1}
-);
-loadingObserver.observe(loadingRef.current);
-return() => {
-  if(loadingRef.current) loadingObserver.unobserve(loadingRef.current)
-}
-},[posts])
+useInfiniteScroll(loadingRef, () => setPage((prev) => prev + 1 , [posts] ));
   return (
     <>
      {error && <div className="error">{error}</div>} 
